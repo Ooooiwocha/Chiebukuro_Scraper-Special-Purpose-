@@ -11,8 +11,8 @@ class SpreadSheet:
 	myspreadsheet = None;
 	gclient = None;
 	def __init__(self, SPREADSHEET_KEY: str):
-		#gclient = gs.oauth();
-		gclient = gs.service_account();
+		gclient = gs.oauth();
+		#gclient = gs.service_account();
 		self.spreadsheet_key = SPREADSHEET_KEY;
 		self.myspreadsheet = gclient.open_by_key(SPREADSHEET_KEY);
 
