@@ -71,10 +71,15 @@ class Scraper:
 				self.driver.execute_script("window.open()");
 				self.driver.switch_to.window(self.driver.window_handles[1]);
 				self.driver.get(href);
-				
-				area_questioner = self.driver.find_element(By.CSS_SELECTOR, "a[class^=ClapLv1UserInfo_Chie-UserInfo]");
+				area_questioner = None;
+				try:
+					area_questioner = self.driver.find_element(By.CSS_SELECTOR, "a[class^=ClapLv1UserInfo_Chie-UserInfo]");
+				except:
+					#ID非公開 -> NoSuchElementException を回避
+					continue;
 				question_date = area_questioner.find_element(By.CSS_SELECTOR, "p[class^=ClapLv1UserInfo_Chie-UserInfo__Date]").text;
 				user_name = area_questioner.find_element(By.CSS_SELECTOR, "p[class^=ClapLv1UserInfo_Chie-UserInfo__UserName]").text[:-2];
+
 				user_page_url = area_questioner.get_attribute("href");
 				if user_page_url is None:
 					continue;
@@ -92,6 +97,7 @@ class Scraper:
 				else:
 					print(*record);
 					ws.myworksheet.append_row(record, value_input_option="USER_ENTERED");
+					ws.myworksheet.format("A{}".format(len(ws.myworksheet.col_values(1))), {"numberFormat": {"type": "DATE"}})
 					url_keys.add(record[1]);
 					userid_keys.add(record[-1]);
 
@@ -128,6 +134,7 @@ def main():
 	exit();
 	"""
 	while True:
+		ws.myworksheet.sort((1, 'asc'), (2, 'asc'));
 		search_text = input("INPUT SEARCH WORDS");
 		if search_text == "":
 			break;
