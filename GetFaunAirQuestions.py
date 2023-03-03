@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 import gspread as gs
 import pandas as pd
 from time import sleep
+import os
 
 SCRAPING_URL = "https://chiebukuro.yahoo.co.jp/"
 
@@ -32,7 +33,7 @@ class Scraper:
 		self.search_text = text;
 		self.driver.get(SCRAPING_URL);
 
-	def scrape_execute(self, ws: WorkSheet, url_keys: set, userid_keys: set) -> None: #参照渡し
+	def scrape_execute(self, ws: WorkSheet, url_keys: set, userid_keys: set, checked: set) -> None: #参照渡し
 		records = [];
 		# 検索
 		search_box = self.driver.find_element(By.CLASS_NAME, 'SearchBox_searchBox__inputBoxInput__nf3fq');
@@ -54,6 +55,14 @@ class Scraper:
 
 				if href in url_keys:
 					continue;
+				q = href.split('/')[-1];
+				if q in checked:
+					continue;
+				else:
+					checked.add(q);
+					with open("data/checked.txt", mode='a', encoding="utf-8", newline="\n") as f:
+						f.write(q+"\n");
+
 				text_content = a_elem.text;
 
 				self.driver.execute_script("window.open()");
@@ -94,6 +103,16 @@ class Scraper:
 
 
 def main():
+	os.makedirs("data", exist_ok=True);
+	checked = set();
+	try:
+		with open("data/checked.txt", mode='x') as f:
+			pass;
+	except FileExistsError:
+		pass;
+		
+	with open("data/checked.txt", mode='r', encoding="utf-8") as f:
+		checked.add(s.strip() for s in f);
 	SPREADSHEET_KEY = input("INPUT SPREADSHEET KEY");
 	ss = SpreadSheet(SPREADSHEET_KEY);
 	ws = WorkSheet(0, ss);
@@ -108,7 +127,7 @@ def main():
 		search_text = input("INPUT SEARCH WORDS");
 		if search_text == "":
 			break;
-		Scraper(search_text).scrape_execute(ws, url_keys, userid_keys);
+		Scraper(search_text).scrape_execute(ws, url_keys, userid_keys, checked);
 
 
 
