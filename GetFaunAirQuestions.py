@@ -115,7 +115,8 @@ def main():
 		pass;
 		
 	with open("data/checked.txt", mode='r', encoding="utf-8") as f:
-		checked.add(s.strip() for s in f);
+		checked = set([s.strip() for s in f]);
+
 	SPREADSHEET_KEY = input("INPUT SPREADSHEET KEY");
 	ss = SpreadSheet(SPREADSHEET_KEY);
 	ws = WorkSheet(0, ss);
