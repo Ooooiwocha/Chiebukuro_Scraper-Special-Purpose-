@@ -2,18 +2,17 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import gspread as gs
 import pandas as pd
-import os
 from time import sleep
-import urllib
 
-API_KEY = "";
 SCRAPING_URL = "https://chiebukuro.yahoo.co.jp/"
 
 class SpreadSheet:
 	spreadsheet_key = "";
 	myspreadsheet = None;
+	gclient = None;
 	def __init__(self, SPREADSHEET_KEY: str):
-		gclient = gs.oauth();
+		#gclient = gs.oauth();
+		gclient = gs.service_account();
 		self.spreadsheet_key = SPREADSHEET_KEY;
 		self.myspreadsheet = gclient.open_by_key(SPREADSHEET_KEY);
 
@@ -38,14 +37,9 @@ class Scraper:
 		# 検索
 		search_box = self.driver.find_element(By.CLASS_NAME, 'SearchBox_searchBox__inputBoxInput__nf3fq');
 		search_box.send_keys(self.search_text);
-		sleep(3);
+		sleep(1);
 		self.driver.find_element(By.XPATH, '//*[@id="Top"]/div/div[1]/div[2]/nav/div[1]/div/div/button').click();
-		"""
-		search_button = self.driver.find_element(By.CLASS_NAME, 'cl-noclick-log SearchBox_searchBox__inputButton__2OXXW')
-		search_button = search_button_container.find_element(By.CSS_SELECTOR, 'input')
-		search_button.click()
-		"""
-		sleep(3)
+		sleep(1)
 		page = 0;
 		while True:
 			page+= 1;
@@ -79,13 +73,13 @@ class Scraper:
 				
 				self.driver.execute_script("window.close()");
 				self.driver.switch_to.window(self.driver.window_handles[0]);
-				sleep(3);
+				sleep(1);
 
 				if user_id not in userid_keys:
 					continue;
 				else:
 					print(*record);
-					ws.myworksheet.append_row(record);
+					ws.myworksheet.append_row(record, value_input_option="USER_ENTERED");
 					url_keys.add(record[1]);
 					userid_keys.add(record[-1]);
 
