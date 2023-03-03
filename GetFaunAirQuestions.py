@@ -72,11 +72,15 @@ class Scraper:
 				self.driver.switch_to.window(self.driver.window_handles[1]);
 				self.driver.get(href);
 				area_questioner = None;
+				
 				try:
 					area_questioner = self.driver.find_element(By.CSS_SELECTOR, "a[class^=ClapLv1UserInfo_Chie-UserInfo]");
 				except:
 					#ID非公開 -> NoSuchElementException を回避
+					self.driver.execute_script("window.close()");
+					self.driver.switch_to.window(self.driver.window_handles[0]);
 					continue;
+
 				question_date = area_questioner.find_element(By.CSS_SELECTOR, "p[class^=ClapLv1UserInfo_Chie-UserInfo__Date]").text;
 				user_name = area_questioner.find_element(By.CSS_SELECTOR, "p[class^=ClapLv1UserInfo_Chie-UserInfo__UserName]").text[:-2];
 
