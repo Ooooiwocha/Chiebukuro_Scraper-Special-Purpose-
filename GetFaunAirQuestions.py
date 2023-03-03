@@ -35,19 +35,22 @@ class Scraper:
 
 	def scrape_execute(self, ws: WorkSheet, url_keys: set, userid_keys: set, checked: set) -> None: #参照渡し
 		records = [];
-		# 検索
+		## 検索
 		search_box = self.driver.find_element(By.CLASS_NAME, 'SearchBox_searchBox__inputBoxInput__nf3fq');
 		search_box.send_keys(self.search_text);
 		sleep(1);
 		self.driver.find_element(By.XPATH, '//*[@id="Top"]/div/div[1]/div[2]/nav/div[1]/div/div/button').click();
-		sleep(1)
+		sleep(3)
+		self.driver.get(self.driver.current_url+'&sort=20');
 		page = 0;
+		## 検索結果
 		while True:
 			page+= 1;
 			try:
 				results = self.driver.find_element(By.ID, "sr").find_elements(By.TAG_NAME, "h3");
 			except Exception as e:
 				return;
+			## 検索結果訪問
 			for element in results:
 				a_elem = element.find_element(By.TAG_NAME, "a");
 				href = a_elem.get_attribute("href");
@@ -92,7 +95,7 @@ class Scraper:
 					url_keys.add(record[1]);
 					userid_keys.add(record[-1]);
 
-			
+			## ページング処理
 			new_page = "b={}".format(10*page+1);
 			current_page = "b={}".format(10*(page-1)+1);
 			currenturl = self.driver.current_url;
