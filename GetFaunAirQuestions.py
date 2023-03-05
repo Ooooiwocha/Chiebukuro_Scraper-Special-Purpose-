@@ -72,11 +72,7 @@ class Chiebukuro_Params:
 		"sort": "",
 	}
 	def __init__(self, p: str="", dnum: str="", b: str="", sort: str=""):
-		if " " in p: 
-			self.params["p"] = p.split().join("%20");
-		else: 
-			self.params["p"] = p;
-
+		self.params["p"] = p.replace("　", " ").replace(" ", "%20");
 		self.params["dnum"] = dnum;
 		self.params["b"] = b;
 		self.params["sort"] = sort;
