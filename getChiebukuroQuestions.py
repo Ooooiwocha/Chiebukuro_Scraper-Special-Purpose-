@@ -44,10 +44,7 @@ SORT_TXT = """
 	least visited: 7
 """
 
-
 class SpreadSheet:
-	spreadsheet_key = "";
-	myspreadsheet = None;
 	gclient = None;
 	def __init__(self, SPREADSHEET_KEY: str):
 		self.gclient = gs.oauth();
@@ -57,8 +54,6 @@ class SpreadSheet:
 		self.myspreadsheet = self.gclient.open_by_key(SPREADSHEET_KEY);
 
 class WorkSheet:
-	myworksheet = None;
-	##mydataframe = None;
 	def __init__(self, id: int, spreadsheet: SpreadSheet):
 		self.myworksheet = spreadsheet.myspreadsheet.get_worksheet(id);
 		##self.mydataframe = pd.DataFrame(self.myworksheet.get_all_records());
@@ -66,13 +61,12 @@ class WorkSheet:
 	def col_values(self, i: int) -> list:
 		return self.myworksheet.col_values(i);
 
-class Chiebukuro_Params(dict):
-	def set_next_page(self):
-		next_page = int(self["b"]) + 10;
-		self["b"] = str(next_page);
-
-
 class URLBuilder:
+	class Chiebukuro_Params(dict):
+		def set_next_page(self):
+			next_page = int(self["b"]) + 10;
+			self["b"] = str(next_page);
+
 	url = "";
 	params = Chiebukuro_Params();
 	def __init__(self, s: str, cp: Chiebukuro_Params):
@@ -84,32 +78,32 @@ class URLBuilder:
 			ret += it[0] + "=" +  it[1] + "&";
 		return ret[:-1];
 
-class History(set):
-	def __init__(self):
-		os.makedirs("data", exist_ok=True);
-		try:
-			with open("data/checked.txt", mode='x') as f:
-				pass;
-		except FileExistsError:
-			pass;
-			
-		with open("data/checked.txt", mode='r', encoding="utf-8") as f:
-			super().__init__([s.strip() for s in f]);
-
-class Nomenclature(set):
-	COLUMN_NO = 6;
-	def __init__(self, ws: WorkSheet):
-		column_no = self.COLUMN_NO;
-		super().__init__(ws.col_values(column_no)[1:]);
-
-class URL_Set(set):
-	COLUMN_NO = 2;
-	def __init__(self, ws: WorkSheet):
-		column_no = self.COLUMN_NO;
-		super().__init__(ws.col_values(column_no)[1:]);
-
 
 class Scraper:
+	class History(set):
+		def __init__(self):
+			os.makedirs("data", exist_ok=True);
+			try:
+				with open("data/checked.txt", mode='x') as f:
+					pass;
+			except FileExistsError:
+				pass;
+				
+			with open("data/checked.txt", mode='r', encoding="utf-8") as f:
+				super().__init__([s.strip() for s in f]);
+
+	class Nomenclature(set):
+		COLUMN_NO = 6;
+		def __init__(self, ws: WorkSheet):
+			column_no = self.COLUMN_NO;
+			super().__init__(ws.col_values(column_no)[1:]);
+
+	class URL_Set(set):
+		COLUMN_NO = 2;
+		def __init__(self, ws: WorkSheet):
+			column_no = self.COLUMN_NO;
+			super().__init__(ws.col_values(column_no)[1:]);
+
 	driver = webdriver.Chrome();
 	search_text = "hoge";
 	scraping_url = SCRAPING_URL;
@@ -118,7 +112,7 @@ class Scraper:
 		self.search_text = text;
 		self.driver.get(SCRAPING_URL);
 
-	def scrape_execute(self, params: Chiebukuro_Params, ws: WorkSheet, url_keys: set, userid_keys: set, checked: History, dbg=False) -> None: #参照渡し
+	def scrape_execute(self, params: dict, ws: WorkSheet, url_keys: set, userid_keys: set, checked: set, dbg=False) -> None: #参照渡し
 		page = 0;
 		
 		## 検索結果がなくなるまで取得
@@ -196,18 +190,18 @@ class Scraper:
 
 
 def main():	
-	visited = History();
+	visited = Scraper.History();
 	spreadsheet_key = input("INPUT SPREADSHEET KEY");
 	ss = SpreadSheet(spreadsheet_key);
 	ws = WorkSheet(0, ss);
-	url_keys = URL_Set(ws);
-	userid_keys = Nomenclature(ws);
+	url_keys = Scraper.URL_Set(ws);
+	userid_keys = Scraper.Nomenclature(ws);
 	while True:
 		ws.myworksheet.sort((1, 'asc'), (2, 'asc'));
 		search_text = input("INPUT SEARCH WORDS");
 		search_genre = input("INPUT SEARCH GENRE\n" + GENRE_TXT);
 		search_sort = input("INPUT IN WHAT WAY SORT\n" + SORT_TXT);
-		params = Chiebukuro_Params(p=search_text, dnum=search_genre, b="1", sort=search_sort);
+		params = URLBuilder.Chiebukuro_Params(p=search_text, dnum=search_genre, b="1", sort=search_sort);
 		print("if you want to get out of the process, press [Ctrl+C].")
 		Scraper(search_text).scrape_execute(params, ws, url_keys, userid_keys, visited);
 
