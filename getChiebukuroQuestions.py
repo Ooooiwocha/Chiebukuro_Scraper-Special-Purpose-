@@ -5,7 +5,7 @@ import pandas as pd
 from time import sleep
 import os
 
-SCRAPING_URL = "https://chiebukuro.yahoo.co.jp/search"
+BASE_URL = "https://chiebukuro.yahoo.co.jp/search"
 
 GENRE_TXT = """
 	ALL GENRE -> JUST PRESS ENTER KEY
@@ -106,18 +106,18 @@ class Scraper:
 
 	driver = webdriver.Chrome();
 	search_text = "hoge";
-	scraping_url = SCRAPING_URL;
+	base_url = BASE_URL;
 
 	def __init__(self, text: str):
 		self.search_text = text;
-		self.driver.get(SCRAPING_URL);
+		self.driver.get(self.base_url);
 
 	def scrape_execute(self, params: dict, ws: WorkSheet, url_keys: set, userid_keys: set, checked: set, dbg=False) -> None: #参照渡し
 		page = 0;
 		
 		## 検索結果がなくなるまで取得
 		while page < 100:
-			url = URLBuilder(SCRAPING_URL, params).build();
+			url = URLBuilder(self.base_url, params).build();
 			print("URLBuild Success: {}".format(url));
 			self.driver.get(url);
 			page+= 1;
@@ -198,12 +198,12 @@ def main():
 	userid_keys = Scraper.Nomenclature(ws);
 	while True:
 		ws.myworksheet.sort((1, 'asc'), (2, 'asc'));
-		search_text = input("INPUT SEARCH WORDS");
+		search_query = input("INPUT SEARCH WORDS");
 		search_genre = input("INPUT SEARCH GENRE\n" + GENRE_TXT);
 		search_sort = input("INPUT IN WHAT WAY SORT\n" + SORT_TXT);
-		params = URLBuilder.Chiebukuro_Params(p=search_text, dnum=search_genre, b="1", sort=search_sort);
+		params = URLBuilder.Chiebukuro_Params(p=search_query, dnum=search_genre, b="1", sort=search_sort);
 		print("if you want to get out of the process, press [Ctrl+C].")
-		Scraper(search_text).scrape_execute(params, ws, url_keys, userid_keys, visited);
+		Scraper(search_query).scrape_execute(params, ws, url_keys, userid_keys, visited);
 
 
 
