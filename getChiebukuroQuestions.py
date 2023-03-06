@@ -92,13 +92,13 @@ class Scraper:
 			with open("data/checked.txt", mode='r', encoding="utf-8") as f:
 				super().__init__([s.strip() for s in f]);
 
-	class Nomenclature(set):
+	class Nomenclature(set): ##シートに追加済みの質問者IDの集合
 		COLUMN_NO = 6;
 		def __init__(self, ws: WorkSheet):
 			column_no = self.COLUMN_NO;
 			super().__init__(ws.col_values(column_no)[1:]);
 
-	class URL_Set(set):
+	class URL_Set(set): ##シートに追加済みの質問URLの集合
 		COLUMN_NO = 2;
 		def __init__(self, ws: WorkSheet):
 			column_no = self.COLUMN_NO;
@@ -112,7 +112,7 @@ class Scraper:
 		self.search_text = text;
 		self.driver.get(self.base_url);
 
-	def scrape_execute(self, params: dict, ws: WorkSheet, url_keys: set, userid_keys: set, checked: set, dbg=False) -> None: #参照渡し
+	def scrape_execute(self, params: dict, ws: WorkSheet, url_keys: set, userid_keys: set, visited: set, dbg=False) -> None: #参照渡し
 		page = 0;
 		
 		## 検索結果がなくなるまで取得
@@ -136,11 +136,11 @@ class Scraper:
 					if dbg: print("href in url_keys!");
 					continue;
 				q = href.split('/')[-1];
-				if q in checked:
+				if q in visited:
 					if dbg: print("already checked!");
 					continue;
 				else:
-					checked.add(q);
+					visited.add(q);
 					with open("data/checked.txt", mode='a', encoding="utf-8", newline="\n") as f:
 						f.write(q+"\n");
 
