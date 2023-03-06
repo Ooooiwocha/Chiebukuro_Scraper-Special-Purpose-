@@ -48,7 +48,7 @@ SORT_TXT = """
 	least visited: 7
 """
 
-class SpreadSheet:
+class SpreadSheet():
 	gclient = None;
 	def __init__(self, SPREADSHEET_KEY: str):
 		self.gclient = gs.oauth();
@@ -108,13 +108,12 @@ class Scraper:
 			column_no = self.COLUMN_NO;
 			super().__init__(ws.col_values(column_no)[1:]);
 
-	driver = webdriver.Chrome();
 	search_text = "hoge";
 	base_url = BASE_URL;
 
 	def __init__(self, text: str):
 		self.search_text = text;
-		self.driver.get(self.base_url);
+		self.driver = webdriver.Chrome();
 
 	def scrape_execute(self, params: dict, ws: WorkSheet, url_keys: set, userid_keys: set, visited: set, dbg=False) -> None: #参照渡し
 		page = 0;
@@ -183,7 +182,7 @@ class Scraper:
 				if user_id not in userid_keys:
 					continue;
 				else:
-					logger.info(*record);
+					print(*record);
 					ws.myworksheet.append_row(record, value_input_option="USER_ENTERED");
 					ws.myworksheet.format("A{}".format(len(ws.myworksheet.col_values(1))), {"numberFormat": {"type": "DATE"}})
 					url_keys.add(record[1]);
