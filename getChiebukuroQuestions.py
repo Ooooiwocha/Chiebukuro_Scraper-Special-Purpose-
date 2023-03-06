@@ -4,7 +4,6 @@ import gspread as gs
 import pandas as pd
 from time import sleep
 import os
-from enum import Enum
 
 SCRAPING_URL = "https://chiebukuro.yahoo.co.jp/search"
 
@@ -67,25 +66,10 @@ class WorkSheet:
 	def col_values(self, i: int) -> list:
 		return self.myworksheet.col_values(i);
 
-class Chiebukuro_Params:
-	params = {
-		"p": "",
-		"dnum": "",
-		"b": "",
-		"sort": "",
-	}
-	def __init__(self, p: str="", dnum: str="", b: str="", sort: str=""):
-		self.params["p"] = p.replace("　", " ").replace(" ", "%20");
-		self.params["dnum"] = dnum;
-		self.params["b"] = b;
-		self.params["sort"] = sort;
-
-	def items(self):
-		return self.params.items();
-
+class Chiebukuro_Params(dict):
 	def set_next_page(self):
-		next_page = int(self.params["b"]) + 10;
-		self.params["b"] = str(next_page);
+		next_page = int(self["b"]) + 10;
+		self["b"] = str(next_page);
 
 
 class URLBuilder:
@@ -93,8 +77,7 @@ class URLBuilder:
 	params = Chiebukuro_Params();
 	def __init__(self, s: str, cp: Chiebukuro_Params):
 		self.url = s;
-		self.param = cp;
-
+		self.params = cp;
 	def build(self) -> str:
 		ret = self.url + "?";
 		for it in self.params.items():
@@ -224,7 +207,7 @@ def main():
 		search_text = input("INPUT SEARCH WORDS");
 		search_genre = input("INPUT SEARCH GENRE\n" + GENRE_TXT);
 		search_sort = input("INPUT IN WHAT WAY SORT\n" + SORT_TXT);
-		params = Chiebukuro_Params(search_text, search_genre, "1", search_sort);
+		params = Chiebukuro_Params(p=search_text, dnum=search_genre, b="1", sort=search_sort);
 		print("if you want to get out of the process, press [Ctrl+C].")
 		Scraper(search_text).scrape_execute(params, ws, url_keys, userid_keys, visited);
 
