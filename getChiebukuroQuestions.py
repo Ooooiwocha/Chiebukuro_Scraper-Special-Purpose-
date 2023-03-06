@@ -3,9 +3,13 @@ from selenium.webdriver.common.by import By
 import gspread as gs
 import pandas as pd
 from time import sleep
+import logging
 import os
 
 BASE_URL = "https://chiebukuro.yahoo.co.jp/search"
+
+logging.basicConfig(level=logging.INFO);
+logger = logging.getLogger(__name__);
 
 GENRE_TXT = """
 	ALL GENRE -> JUST PRESS ENTER KEY
@@ -118,7 +122,7 @@ class Scraper:
 		## 検索結果がなくなるまで取得
 		while page < 100:
 			url = URLBuilder(self.base_url, params).build();
-			print("URLBuild Success: {}".format(url));
+			logger.info("URLBuild Success: {}".format(url));
 			self.driver.get(url);
 			page+= 1;
 			try:
