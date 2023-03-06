@@ -7,7 +7,6 @@ import os
 from enum import Enum
 
 SCRAPING_URL = "https://chiebukuro.yahoo.co.jp/search"
-DEBUG = 0;
 
 GENRE_TXT = """
 	ALL GENRE -> JUST PRESS ENTER KEY
@@ -52,17 +51,18 @@ class SpreadSheet:
 	myspreadsheet = None;
 	gclient = None;
 	def __init__(self, SPREADSHEET_KEY: str):
-		gclient = gs.oauth();
-		#gclient = gs.service_account();
+		self.gclient = gs.oauth();
+		#self.gclient = gs.service_account();
+
 		self.spreadsheet_key = SPREADSHEET_KEY;
-		self.myspreadsheet = gclient.open_by_key(SPREADSHEET_KEY);
+		self.myspreadsheet = self.gclient.open_by_key(SPREADSHEET_KEY);
 
 class WorkSheet:
 	myworksheet = None;
-	mydataframe = None;
+	##mydataframe = None;
 	def __init__(self, id: int, spreadsheet: SpreadSheet):
 		self.myworksheet = spreadsheet.myspreadsheet.get_worksheet(id);
-		self.mydataframe = pd.DataFrame(self.myworksheet.get_all_records());
+		##self.mydataframe = pd.DataFrame(self.myworksheet.get_all_records());
 
 class Chiebukuro_Params:
 	params = {
@@ -108,7 +108,7 @@ class Scraper:
 		self.search_text = text;
 		self.driver.get(SCRAPING_URL);
 
-	def scrape_execute(self, params: Chiebukuro_Params, ws: WorkSheet, url_keys: set, userid_keys: set, checked: set) -> None: #参照渡し
+	def scrape_execute(self, params: Chiebukuro_Params, ws: WorkSheet, url_keys: set, userid_keys: set, checked: set, debug=False) -> None: #参照渡し
 		page = 0;
 		## 旧バージョン下における検索
 		"""
@@ -130,7 +130,7 @@ class Scraper:
 				assert page <= 100;
 				results = self.driver.find_element(By.ID, "sr").find_elements(By.TAG_NAME, "h3");
 			except Exception as e:
-				if DEBUG: print(e);
+				if debug: print(e);
 				return;
 			## 検索結果訪問
 			for element in results:
@@ -139,11 +139,11 @@ class Scraper:
 				href = href.split("?")[0];
 
 				if href in url_keys:
-					if DEBUG: print("href in url_keys!");
+					if debug: print("href in url_keys!");
 					continue;
 				q = href.split('/')[-1];
 				if q in checked:
-					if DEBUG: print("already checked!");
+					if debug: print("already checked!");
 					continue;
 				else:
 					checked.add(q);
