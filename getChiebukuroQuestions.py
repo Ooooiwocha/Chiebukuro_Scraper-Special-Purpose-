@@ -64,6 +64,9 @@ class WorkSheet:
 		self.myworksheet = spreadsheet.myspreadsheet.get_worksheet(id);
 		##self.mydataframe = pd.DataFrame(self.myworksheet.get_all_records());
 
+	def col_values(self, i: int) -> list:
+		return self.myworksheet.col_values(i);
+
 class Chiebukuro_Params:
 	params = {
 		"p": "",
@@ -98,6 +101,30 @@ class URLBuilder:
 			ret += it[0] + "=" +  it[1] + "&";
 		return ret[:-1];
 
+class History(set):
+	def __init__(self):
+		os.makedirs("data", exist_ok=True);
+		try:
+			with open("data/checked.txt", mode='x') as f:
+				pass;
+		except FileExistsError:
+			pass;
+			
+		with open("data/checked.txt", mode='r', encoding="utf-8") as f:
+			super().__init__([s.strip() for s in f]);
+
+class Nomenclature(set):
+	COLUMN_NO = 6;
+	def __init__(self, ws: WorkSheet):
+		column_no = self.COLUMN_NO;
+		super().__init__(ws.col_values(column_no)[1:]);
+
+class URL_Set(set):
+	COLUMN_NO = 2;
+	def __init__(self, ws: WorkSheet):
+		column_no = self.COLUMN_NO;
+		super().__init__(ws.col_values(column_no)[1:]);
+
 
 class Scraper:
 	driver = webdriver.Chrome();
@@ -108,29 +135,19 @@ class Scraper:
 		self.search_text = text;
 		self.driver.get(SCRAPING_URL);
 
-	def scrape_execute(self, params: Chiebukuro_Params, ws: WorkSheet, url_keys: set, userid_keys: set, checked: set, debug=False) -> None: #参照渡し
+	def scrape_execute(self, params: Chiebukuro_Params, ws: WorkSheet, url_keys: set, userid_keys: set, checked: History, dbg=False) -> None: #参照渡し
 		page = 0;
-		## 旧バージョン下における検索
-		"""
-		search_box = self.driver.find_element(By.CLASS_NAME, 'SearchBox_searchBox__inputBoxInput__nf3fq');
-		search_box.send_keys(self.search_text);
-		sleep(1);
-		self.driver.find_element(By.XPATH, '//*[@id="Top"]/div/div[1]/div[2]/nav/div[1]/div/div/button').click();
-		sleep(3)
-		##self.driver.get(self.driver.current_url+'&sort=20');
-		"""
 		
 		## 検索結果がなくなるまで取得
-		while True:
+		while page < 100:
 			url = URLBuilder(SCRAPING_URL, params).build();
 			print("URLBuild Success: {}".format(url));
 			self.driver.get(url);
 			page+= 1;
 			try:
-				assert page <= 100;
 				results = self.driver.find_element(By.ID, "sr").find_elements(By.TAG_NAME, "h3");
 			except Exception as e:
-				if debug: print(e);
+				if dbg: print(e);
 				return;
 			## 検索結果訪問
 			for element in results:
@@ -139,11 +156,11 @@ class Scraper:
 				href = href.split("?")[0];
 
 				if href in url_keys:
-					if debug: print("href in url_keys!");
+					if dbg: print("href in url_keys!");
 					continue;
 				q = href.split('/')[-1];
 				if q in checked:
-					if debug: print("already checked!");
+					if dbg: print("already checked!");
 					continue;
 				else:
 					checked.add(q);
@@ -181,7 +198,7 @@ class Scraper:
 				self.driver.switch_to.window(self.driver.window_handles[0]);
 				sleep(1);
 
-				## 探したい質問者IDと確認されているか否か
+				## 確認済み質問者IDと一致するならば、表を更新する
 				if user_id not in userid_keys:
 					continue;
 				else:
@@ -194,38 +211,22 @@ class Scraper:
 			## ページング処理
 			params.set_next_page();
 
-def main():
-	os.makedirs("data", exist_ok=True);
-	checked = set();
-	try:
-		with open("data/checked.txt", mode='x') as f:
-			pass;
-	except FileExistsError:
-		pass;
-		
-	with open("data/checked.txt", mode='r', encoding="utf-8") as f:
-		checked = set([s.strip() for s in f]);
 
-	SPREADSHEET_KEY = input("INPUT SPREADSHEET KEY");
-	ss = SpreadSheet(SPREADSHEET_KEY);
+def main():	
+	visited = History();
+	spreadsheet_key = input("INPUT SPREADSHEET KEY");
+	ss = SpreadSheet(spreadsheet_key);
 	ws = WorkSheet(0, ss);
-	url_keys = set(ws.myworksheet.col_values(2)[1:]); #URLをキーとする
-	userid_keys = set(ws.myworksheet.col_values(6)[1:]);
-	"""
-	for key in keys:
-		print(key);
-	exit();
-	"""
+	url_keys = URL_Set(ws);
+	userid_keys = Nomenclature(ws);
 	while True:
 		ws.myworksheet.sort((1, 'asc'), (2, 'asc'));
 		search_text = input("INPUT SEARCH WORDS");
-		if search_text == "":
-			break;
 		search_genre = input("INPUT SEARCH GENRE\n" + GENRE_TXT);
 		search_sort = input("INPUT IN WHAT WAY SORT\n" + SORT_TXT);
 		params = Chiebukuro_Params(search_text, search_genre, "1", search_sort);
-		
-		Scraper(search_text).scrape_execute(params, ws, url_keys, userid_keys, checked);
+		print("if you want to get out of the process, press [Ctrl+C].")
+		Scraper(search_text).scrape_execute(params, ws, url_keys, userid_keys, visited);
 
 
 
