@@ -183,7 +183,7 @@ class Scraper:
 				if user_id not in userid_keys:
 					continue;
 				else:
-					print(*record);
+					logger.info(*record);
 					ws.myworksheet.append_row(record, value_input_option="USER_ENTERED");
 					ws.myworksheet.format("A{}".format(len(ws.myworksheet.col_values(1))), {"numberFormat": {"type": "DATE"}})
 					url_keys.add(record[1]);
