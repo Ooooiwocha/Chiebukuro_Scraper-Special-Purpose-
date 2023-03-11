@@ -70,8 +70,8 @@ class URLBuilder:
 
 	class Chiebukuro_Params(dict):
 		DEFAULT_FLAG = dict(flg="1", dflg="4");
-		DEFAULT_SINCE = dict(dfrom_y="2015", dfrom_m="04", dfrom_d="01");
-		DEFAULT_UNTIL = dict(dto_y="2021", dto_m="12", dto_d="01");
+		DEFAULT_SINCE = dict(dfrom_y="2000", dfrom_m="04", dfrom_d="01");
+		DEFAULT_UNTIL = dict(dto_y="2999", dto_m="03", dto_d="01");
 		def __init__(self, params=dict(), flag=DEFAULT_FLAG, since=DEFAULT_SINCE, until=DEFAULT_UNTIL):
 			params.update(flag);
 			params.update(since);
@@ -138,8 +138,8 @@ class Scraper:
 			return True;
 		return False;
 
-	def update_params(self, params:dict, date:str):
-		MIN_DELTA = 90;
+	def update_params(self, params:dict, date:str):　##知恵袋の仕様上、昇順の場合の処理が奏功しない可能性がある
+		MIN_DELTA = 1;
 		y, m, d = date.split('/');
 		d = d.split(" ")[0];
 		date1 = None;
@@ -147,8 +147,9 @@ class Scraper:
 		if params["sort"]==self.ASC:
 			date1 = datetime.date(*map(int, [params["dfrom_y"], params["dfrom_m"], params["dfrom_d"]]));
 			delta = date2 - date1;
-			if delta.days<MIN_DELTA: ##知恵袋の仕様上、日付検索が意図的に弱められている可能性 -> 日付後退現象を防ぐ必要がある
-				date3 = date1 + datetime.timedelta(days=90);
+
+			if delta.days<MIN_DELTA: 
+				date3 = date1 + datetime.timedelta(days=MIN_DELTA);
 				y, m, d = map(str, [date3.year, date3.month, date3.day]);
 
 			params.update({"b": "1", "dfrom_y": y, "dfrom_m": m, "dfrom_d": d});
