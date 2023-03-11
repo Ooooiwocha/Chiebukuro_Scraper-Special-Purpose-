@@ -138,7 +138,7 @@ class Scraper:
 			return True;
 		return False;
 
-	def update_params(self, params:dict, date:str):　##知恵袋の仕様上、昇順の場合の処理が奏功しない可能性がある
+	def update_params(self, params:dict, date:str): ##知恵袋の仕様上、昇順の場合の処理が奏功しない可能性がある
 		MIN_DELTA = 1;
 		y, m, d = date.split('/');
 		d = d.split(" ")[0];
